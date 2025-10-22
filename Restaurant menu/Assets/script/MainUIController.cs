@@ -18,11 +18,11 @@ public class MainUIController : MonoBehaviour
     private VisualElement clientHeader;
     private Button btnAdmin;
 
-    private IntegerField pinCodeInput;   // dùng IntegerField cho PIN
+    private IntegerField pinCodeInput;
     private Label adminShowLabel;
 
     private bool isAdminMode = false;
-    private int correctPin = 1234;        // PIN hợp lệ (int)
+    private int correctPin = 1234;
 
     void OnEnable()
     {
@@ -73,9 +73,17 @@ public class MainUIController : MonoBehaviour
 
         adminShowLabel.style.display = DisplayStyle.None;
 
-        // Lắng nghe sự kiện khi giá trị của IntegerField thay đổi
+        // Đảm bảo chỉ nhập số và mở bàn phím số trên Android
+        pinCodeInput.isDelayed = true;  // Để nhận giá trị sau khi nhập xong (bớt callback liên tục)
+
         pinCodeInput.RegisterValueChangedCallback(evt => {
             CheckPinCode(evt.newValue);
+        });
+
+        // Đặt focus vào input khi cần (ví dụ lúc bắt đầu hoặc khi user chuyển lại Client Mode)
+        pinCodeInput.RegisterCallback<FocusOutEvent>(evt => {
+            // Nếu muốn có thể xử lý khi mất focus, ví dụ ẩn bàn phím
+            // Nhưng đa số không cần nếu dùng InputField trên mobile
         });
 
         btnAdmin.clicked += ToggleAdminMode;
@@ -98,7 +106,7 @@ public class MainUIController : MonoBehaviour
     {
         if (enteredPin == correctPin)
         {
-            Debug.Log("PIN đúng! Hiển thị adminShow label.");
+            Debug.Log("PIN đúng! Hiển thị adminShowLabel.");
             adminShowLabel.style.display = DisplayStyle.Flex;
             pinCodeInput.style.display = DisplayStyle.None;
         }
@@ -141,6 +149,12 @@ public class MainUIController : MonoBehaviour
         else
         {
             SetClientModeUI();
+            // Khi chuyển về client mode, reset pin input để nhập lại
+            pinCodeInput.value = 0;
+            pinCodeInput.style.display = DisplayStyle.Flex;
+            adminShowLabel.style.display = DisplayStyle.None;
+            // Đặt focus để mở bàn phím số trên Android
+            pinCodeInput.Focus();
         }
     }
 
