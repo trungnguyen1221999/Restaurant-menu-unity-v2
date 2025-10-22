@@ -18,13 +18,16 @@ public class MainUIController : MonoBehaviour
     private VisualElement clientHeader;
     private Button btnAdmin;
 
+    private IntegerField pinCodeInput;   // dùng IntegerField cho PIN
+    private Label adminShowLabel;
+
     private bool isAdminMode = false;
+    private int correctPin = 1234;        // PIN hợp lệ (int)
 
     void OnEnable()
     {
         var root = uiDocument.rootVisualElement;
 
-        // Truy xuất UI
         btnAdmin = root.Q<Button>("btnAdmin");
         if (btnAdmin == null)
         {
@@ -62,7 +65,19 @@ public class MainUIController : MonoBehaviour
         clientBox = root.Q<VisualElement>("clientBox");
         Debug.Assert(clientBox != null, "clientBox is null!");
 
-        // Gắn sự kiện
+        pinCodeInput = root.Q<IntegerField>("pinCodeInput");
+        Debug.Assert(pinCodeInput != null, "pinCodeInput is null!");
+
+        adminShowLabel = root.Q<Label>("adminShowLabel");
+        Debug.Assert(adminShowLabel != null, "adminShowLabel is null!");
+
+        adminShowLabel.style.display = DisplayStyle.None;
+
+        // Lắng nghe sự kiện khi giá trị của IntegerField thay đổi
+        pinCodeInput.RegisterValueChangedCallback(evt => {
+            CheckPinCode(evt.newValue);
+        });
+
         btnAdmin.clicked += ToggleAdminMode;
 
         btnMar.clicked += () => AddToCart(15f);
@@ -73,11 +88,25 @@ public class MainUIController : MonoBehaviour
         btnRefresh.clicked += ResetCart;
         btnCheckout.clicked += Checkout;
 
-        // Thiết lập trạng thái UI ban đầu
         SetClientModeUI();
 
         UpdateTotalPriceLabel();
         UpdateIncomeLabel();
+    }
+
+    private void CheckPinCode(int enteredPin)
+    {
+        if (enteredPin == correctPin)
+        {
+            Debug.Log("PIN đúng! Hiển thị adminShow label.");
+            adminShowLabel.style.display = DisplayStyle.Flex;
+            pinCodeInput.style.display = DisplayStyle.None;
+        }
+        else
+        {
+            adminShowLabel.style.display = DisplayStyle.None;
+            pinCodeInput.style.display = DisplayStyle.Flex;
+        }
     }
 
     void AddToCart(float price)
